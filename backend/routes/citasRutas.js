@@ -5,6 +5,7 @@
 
 const express = require("express");
 require("../middleware/authMiddleware");
+require("../middleware/authMiddleware");
 const router = express.Router();
 const citaController = require("../controllers/citas.controlador");
 
