@@ -5,7 +5,6 @@
 
 const express = require("express");
 require("../middleware/authMiddleware");
-require("../middleware/authMiddleware");
 const router = express.Router();
 const citaController = require("../controllers/citas.controlador");
 
@@ -40,7 +39,7 @@ router.post("/crear-cita", citaController.crearCita);
  * @param {string} path - Ruta de la API.
  * @param {function} middleware - Controlador para manejar la solicitud.
  */
-router.get("/citas/:id", citaController.UnicaCita);
+router.get("/citas/:id", citaController.unicaCita);
 
 /**
  * Ruta para actualizar la información de una cita existente.
@@ -73,7 +72,8 @@ router.delete("/citas/:id", citaController.eliminarCita);
  * @param {string} path - Ruta de la API.
  * @param {function} middleware - Controlador para manejar la solicitud.
  */
-router.post("/citas/:id/notificacion", citaController.notificarCita);
+
+// router.post("/citas/:id/notificacion", citaController.notificarCita);
 
 // router.use(authMiddleware);
 

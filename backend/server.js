@@ -18,6 +18,8 @@ app.get("/", (req, res) => {
   res.send("Hola Mundo SERVIDOR CORRIENDO desde Express");
 });
 
+app.use(express.json);
+
 app.use(citasRouter);
 app.use(historialMedRouter);
 

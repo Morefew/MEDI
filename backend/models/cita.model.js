@@ -40,6 +40,6 @@ const citaMedicaSchema = new mongoose.Schema(
   }
 );
 
-const citaMedica = mongoose.model("CitaMedica", citaMedicaSchema);
+const citaMedica = mongoose.model("citas", citaMedicaSchema);
 
 module.exports = citaMedica;

@@ -3,7 +3,7 @@
  * @module citaController
  */
 
-const citaModel = require("../models/cita.model");
+const CitaModel = require("../models/cita.model");
 require("../config/db");
 
 const controller = {};
@@ -16,11 +16,8 @@ const controller = {};
  * @param {Object} res - Objeto de respuesta de Express.
  * @returns {Promise<void>} - Devuelve una promesa que resuelve en un objeto JSON con la lista de citas o un objeto JSON con el error.
  */
-
-// TO-DO actualizar el @return de la documentacion
-
 controller.citas = async (req, res) => {
-  const citasBD = await queryAll();
+  const citasBD = await CitaModel.find();
   try {
     if (!citasBD) {
       return res.status(404).send({ msg: "Cita no encontrada" });
@@ -30,6 +27,7 @@ controller.citas = async (req, res) => {
   } catch (error) {
     res
       .status(500)
+      // const errors = controlDeErrores(error);
       .send(`${error} ---> cita con el ID: ${citaID} no encontrada`);
   }
 };
@@ -43,8 +41,6 @@ controller.citas = async (req, res) => {
  * @returns {Promise<void>} - Una promesa que resuelve en un objeto JSON con la nueva cita o un objeto JSON con el error.
  */
 controller.crearCita = async (req, res) => {
-  console.log(req.body);
-
   const {
     paciente_id,
     medico_id,
@@ -55,24 +51,21 @@ controller.crearCita = async (req, res) => {
     notificaciones,
   } = req.body;
 
-  const nuevaCita = new citaModel({
-    paciente_id,
-    medico_id,
-    fecha,
-    hora,
-    motivo,
-    estado,
-    notificaciones,
-  });
-
   try {
-    const cita = await nuevaCita.save();
-    // res.redirect("/citas");
+    const cita = await new CitaModel({
+      paciente_id,
+      medico_id,
+      fecha,
+      hora,
+      motivo,
+      estado,
+      notificaciones,
+    }).save();
     // respuesta JSON. Se puede usar como notificacion:
     res.status(201).json(cita);
   } catch (error) {
     // const errors = controlDeErrores(error);
-    res.status(400).json({ error });
+    res.status(400).json({ error: error.message });
   }
 };
 
@@ -85,18 +78,24 @@ controller.crearCita = async (req, res) => {
  * @returns {Promise<void>} - Una promesa que resuelve en una vista renderizada con los detalles de la cita o un mensaje de error.
  */
 controller.unicaCita = async (req, res) => {
-  const citaID = req.params.id;
+  const { id } = req.params;
+
+  if (!id) {
+    return res.status(400).json({ error: "Se requiere el ID de la Cita" });
+  }
+
   try {
-    const citaRequested = await citaModel.findOne({ citaID });
-    if (!citaRequested) {
-      return res.status(404).send({ msg: "Cita no encontrada" });
-    } else {
-      res.status(200).json(citaRequested);
+    const cita = await CitaModel.findById(id);
+
+    if (!cita) {
+      return res.status(404).json({ error: "Cita no encontrada" });
     }
+
+    res.status(200).json(cita);
   } catch (error) {
-    res
-      .status(500)
-      .send(`${error} ---> cita con el ID: ${citaID} no encontrada`);
+    console.error("Error al buscar la cita:", error);
+    // const errors = controlDeErrores(error);
+    res.status(500).json({ error: "Error al buscar la cita" });
   }
 };
 
@@ -108,45 +107,30 @@ controller.unicaCita = async (req, res) => {
  * @param {Object} res - Objeto de respuesta de Express.
  * @returns {Promise<void>} - Una promesa que resuelve en una redirección a la página de citas o un mensaje de error.
  */
+
 controller.actualizarCita = async (req, res) => {
   if (!req.params.id) {
-    return res.status(400).send("Se requiere el ID del Cita");
+    return res.status(400).json({ error: "Se requiere el ID de la Cita" });
   }
 
   const id = req.params.id;
-  const filter = { _id: id };
-
-  const {
-    paciente_id,
-    medico_id,
-    fecha,
-    hora,
-    motivo,
-    estado,
-    notificaciones,
-  } = req.body;
-
-  const nuevaCita = new citaModel({
-    paciente_id,
-    medico_id,
-    fecha,
-    hora,
-    motivo,
-    estado,
-    notificaciones,
-  });
 
   try {
-    const nuevosDatos = await citaModel
-      .findOneAndReplace(filter, nuevaCita, { new: true })
-      .lean();
-    if (!nuevosDatos) {
-      return res.status(404).send("Cita no encontrada");
+    const citaActualizada = await CitaModel.findByIdAndUpdate(
+      id,
+      { $set: req.body },
+      { new: true, runValidators: true }
+    );
+
+    if (!citaActualizada) {
+      return res.status(404).json({ error: "Cita no encontrada" });
     }
-    res.redirect(`/citas`);
+
+    res.json(citaActualizada);
   } catch (error) {
-    res.status(500).send(error);
-    console.log(error);
+    console.error("Error al actualizar la cita:", error);
+    // const errors = controlDeErrores(error);
+    res.status(500).json({ error: "Error al actualizar la cita" });
   }
 };
 
@@ -159,22 +143,29 @@ controller.actualizarCita = async (req, res) => {
  * @returns {Promise<void>} - Devuelve una promesa que resuelve en una respuesta HTTP indicando si la cita fue cancelada o un error.
  */
 controller.eliminarCita = async (req, res) => {
-  const _id = req.params.id;
+  const { id } = req.params;
+
+  if (!id) {
+    return res.status(400).json({ error: "Se requiere el ID de la Cita" });
+  }
 
   try {
-    const cita = await citaModel.deleteOne({ _id });
+    const resultado = await CitaModel.findByIdAndDelete(id);
 
-    if (!cita) {
-      return res.status(404).send("Cita no encontrado");
+    if (!resultado) {
+      return res.status(404).json({ error: "Cita no encontrada" });
     }
-    res.send("Cita eliminado");
+
+    res.status(200).json(resultado);
   } catch (error) {
-    res.status(500).send(error);
+    console.error("Error al eliminar la cita:", error);
+    // const errors = controlDeErrores(error);
+    res.status(500).json({ error: "Error al eliminar la cita" });
   }
 };
 
 // POST: Enviar recordatorio de cita
-router.post("/citas/:id/notificacion", citaController.notificarCita);
+// router.post("/citas/:id/notificacion", citaController.notificarCita);
 
 // Función auxiliar para el control de excepciones
 // function controlDeErrores(error) {
