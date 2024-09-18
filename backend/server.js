@@ -1,8 +1,9 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
-const citasRouter = require("./routes/citasRutas");
-const historialMedRouter = require("./routes/historialMedRutas");
+const citasRouter = require("./routes/citas.rutas");
+const historialMedRouter = require("./routes/historialMed.rutas");
+const usuarioRouter = require("./routes/usuario.rutas");
 
 require("dotenv").config();
 require("./config/db");
@@ -22,6 +23,7 @@ app.use(express.json);
 
 app.use(citasRouter);
 app.use(historialMedRouter);
+app.use(usuarioRouter);
 
 const serverPort = process.env.SERVER_PORT;
 app.listen(serverPort, () => {
