@@ -12,18 +12,18 @@ const app = express();
 
 app.use(cookieParser());
 
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.json());
+
+// app.use(bodyParser.urlencoded({ extended: true }));
 
 // SERVER TEST
 app.get("/", (req, res) => {
   res.send("Hola Mundo SERVIDOR CORRIENDO desde Express");
 });
 
-app.use(express.json);
-
+app.use(usuarioRouter);
 app.use(citasRouter);
 app.use(historialMedRouter);
-app.use(usuarioRouter);
 
 const serverPort = process.env.SERVER_PORT;
 app.listen(serverPort, () => {
