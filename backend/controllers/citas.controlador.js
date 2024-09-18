@@ -224,19 +224,47 @@ controller.eliminarCita = async (req, res) => {
   }
 };
 
-// TODO - citas del Paciente
+/**
+ * Controlador para obtener todos los tipos de citas relacionadas a paciente específico.
+ * @function
+ * @async
+ * @param {Object} req - Objeto de solicitud de Express.
+ * @param {Object} res - Objeto de respuesta de Express.
+ * @returns {Promise<void>} - Devuelve una promesa que resuelve en una respuesta HTTP con las citas del paciente o un error.
+ */
 controller.citasPaciente = async (req, res) => {
-  const { id } = req.params;
+  const { paciente_id } = req.params;
 
-  if (!id) {
+  if (!paciente_id) {
     return res.status(400).json({ error: "Se requiere el ID del Paciente" });
   }
 
   try {
-    const citas = await CitaModel.findOne();
+    const paciente = await UsuarioModel.findOne({
+      _id: paciente_id,
+      rol: "paciente",
+    });
+
+    if (!paciente) {
+      return res
+        .status(404)
+        .json({ error: "El Id proporcionado no pertenece a un paciente" });
+    }
+
+    res.status(200).json(citas);
+  } catch (error) {
+    console.error("Error al buscar la cita:", error);
+    // const errors = controlDeErrores(error);
+    res.status(500).json({ error: "Error al buscar la cita" });
+  }
+
+  try {
+    const citas = await CitaModel.findOne({
+      usuario_paciente_id: paciente_id,
+    });
 
     if (!citas) {
-      return res.status(404).json({ error: "Cita no encontrada" });
+      return res.status(404).json({ error: "El paciente no tiene citas" });
     }
 
     res.status(200).json(citas);

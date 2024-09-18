@@ -13,3 +13,5 @@ router.get("api/usuarios/:id", usuarioController.usuarioID);
 router.post("api/usuarios", usuarioController.usuarioCrear);
 // ruta para obtener borrar usuario de acuerdo al ID
 router.delete("api/usuarios/:id", usuarioController.usuarioID);
+
+module.exports = router;

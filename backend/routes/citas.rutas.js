@@ -76,7 +76,7 @@ router.delete("api/citas/:id", citaController.eliminarCita);
 // router.post("/citas/:id/notificacion", citaController.notificarCita);
 
 /**
- * Ruta para obtener las citas de un paciente específico.
+ * Ruta para obtener todos los tipos de citas relacionadas a paciente específico.
  * @name GET/api/citas/fechas-disponibles/paciente/:id
  * @function
  * @memberof module:CitaRoutes

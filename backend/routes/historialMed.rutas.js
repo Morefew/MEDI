@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const historialMedController = require("../controllers/historialMed.controlador");
 
-router.get("/historial-medico", historialMedController.getHistorial);
+router.get("api/historial-medico", historialMedController.getHistorial);
 
 // router.use(authMiddleware);
 
