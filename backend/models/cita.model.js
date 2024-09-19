@@ -7,9 +7,8 @@ const citaMedicaSchema = new mongoose.Schema(
       ref: "Paciente",
       required: [true, "Por favor seleccione el paciente para la cita"],
     },
-    medico_id: {
+    doctor_id: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Medico",
       required: [true, "Por favor seleccione el Doctor para la cita"],
     },
     fecha: {
