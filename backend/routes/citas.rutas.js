@@ -5,8 +5,9 @@
 
 const express = require("express");
 require("../middleware/authMiddleware");
-const router = express.Router();
+const router = new express.Router();
 const citaController = require("../controllers/citas.controlador");
+const parsearCampos = require("../middleware/parsearCampos");
 
 /**
  * Ruta para obtener la lista de citas.
@@ -17,8 +18,10 @@ const citaController = require("../controllers/citas.controlador");
  * @param {string} path - Ruta de la API.
  * @param {function} middleware - Controlador para manejar la solicitud.
  */
-router.get("api/citas", citaController.citas);
-
+router.get("/api/citas", citaController.citas);
+// router.get("/api/citas", (req, res) => {
+//   res.send("Hola Mundo CITAS CORRIENDO desde Express");
+// });
 /**
  * Ruta para crear una nueva cita.
  * @name POST/crear-cita
@@ -28,7 +31,7 @@ router.get("api/citas", citaController.citas);
  * @param {string} path - Ruta de la API.
  * @param {function} middleware - Controlador para manejar la solicitud.
  */
-router.post("api/crear-cita", citaController.crearCita);
+router.post("/api/cita/crear", parsearCampos, citaController.crearCita);
 
 /**
  * Ruta para obtener los detalles de una cita específica.
@@ -39,7 +42,7 @@ router.post("api/crear-cita", citaController.crearCita);
  * @param {string} path - Ruta de la API.
  * @param {function} middleware - Controlador para manejar la solicitud.
  */
-router.get("api/citas/:id", citaController.unicaCita);
+router.get("/api/cita/detalles", citaController.unicaCita);
 
 /**
  * Ruta para actualizar la información de una cita existente.
@@ -50,7 +53,7 @@ router.get("api/citas/:id", citaController.unicaCita);
  * @param {string} path - Ruta de la API.
  * @param {function} middleware - Controlador para manejar la solicitud.
  */
-router.put("api/citas/:id", citaController.actualizarCita);
+router.put("/api/cita/actualizar", citaController.actualizarCita);
 
 /**
  * Ruta para cancelar una cita existente.
@@ -61,7 +64,7 @@ router.put("api/citas/:id", citaController.actualizarCita);
  * @param {string} path - Ruta de la API.
  * @param {function} middleware - Controlador para manejar la solicitud.
  */
-router.delete("api/citas/:id", citaController.eliminarCita);
+router.delete("/api/cita/eliminar", citaController.eliminarCita);
 
 /**
  * Ruta para enviar un recordatorio de cita.
@@ -75,8 +78,9 @@ router.delete("api/citas/:id", citaController.eliminarCita);
 
 // router.post("/citas/:id/notificacion", citaController.notificarCita);
 
+// TODO
 /**
- * Ruta para obtener todos los tipos de citas relacionadas a paciente específico.
+ * Ruta para obtener todos los tipos de citas relacionadas a un paciente específico.
  * @name GET/api/citas/fechas-disponibles/paciente/:id
  * @function
  * @memberof module:CitaRoutes
@@ -84,7 +88,7 @@ router.delete("api/citas/:id", citaController.eliminarCita);
  * @param {string} path - Ruta de la API.
  * @param {function} middleware - Controlador para manejar la solicitud.
  */
-router.get("api/citas/", citaController.citasPaciente);
+router.get("/api/cita/paciente", citaController.citasPaciente);
 
 /**
  * Ruta para obtener las fechas disponibles para un médico específico.
@@ -95,7 +99,7 @@ router.get("api/citas/", citaController.citasPaciente);
  * @param {string} path - Ruta de la API.
  * @param {function} middleware - Controlador para manejar la solicitud.
  */
-router.get("api/citas/disponibles?", citaController.citasDisponiblesDoctor);
+router.get("/api/citas/disponibles", citaController.citasDisponiblesDoctor);
 
 // router.use(authMiddleware);
 

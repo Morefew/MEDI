@@ -5,6 +5,7 @@
 
 const CitaModel = require("../models/cita.model");
 const UsuarioModel = require("../models/usuario.model");
+const mongoose = require("mongoose");
 require("../config/db");
 
 /**
@@ -28,12 +29,20 @@ const CITASMAX = 8;
  * @param {Date} fechaFin - Fecha de fin del rango.
  * @returns {Promise<string[]>} - Devuelve una promesa que resuelve en un array de fechas disponibles.
  */
-const buscarFechasDisponibles = async (usuarioId, fechaInicio, fechaFin) => {
-  const fechasOcupadas = await Cita.aggregate([
+
+const buscarFechasDisponibles = async (doctorId, fechaInicio, fechaFin) => {
+  console.log("Doctor ID:", doctorId);
+  console.log("Fecha Inicio:", fechaInicio);
+  console.log("Fecha Fin:", fechaFin);
+
+  const citasProgramadas = await CitaModel.aggregate([
     {
       $match: {
-        usuario_id: usuarioId,
-        fecha: { $gte: fechaInicio, $lte: fechaFin },
+        doctor_id: new mongoose.Types.ObjectId(doctorId),
+        fecha: {
+          $gte: new Date(fechaInicio),
+          $lte: new Date(fechaFin),
+        },
         estado: { $in: ["confirmada", "pendiente"] },
       },
     },
@@ -43,27 +52,30 @@ const buscarFechasDisponibles = async (usuarioId, fechaInicio, fechaFin) => {
         citas: { $sum: 1 },
       },
     },
-    {
-      $match: {
-        citas: { $gte: CITASMAX }, // Asumiendo un máximo de 8 citas por día
-      },
-    },
   ]);
 
-  const fechasOcupadasSet = new Set(fechasOcupadas.map((f) => f._id));
+  console.log("Citas Programadas:", citasProgramadas);
 
-  const todasLasFechas = [];
+  const citasProgramadasMap = new Map(
+    citasProgramadas.map((c) => [c._id, c.citas])
+  );
+
+  console.log("Mapa de Citas Programadas:", [...citasProgramadasMap.entries()]);
+
+  const fechasDisponibles = [];
   for (
     let d = new Date(fechaInicio);
-    d <= fechaFin;
+    d <= new Date(fechaFin);
     d.setDate(d.getDate() + 1)
   ) {
-    todasLasFechas.push(d.toISOString().split("T")[0]);
+    const fechaStr = d.toISOString().split("T")[0];
+    const citasEnFecha = citasProgramadasMap.get(fechaStr) || 0;
+    if (citasEnFecha < 8) {
+      fechasDisponibles.push(fechaStr);
+    }
   }
 
-  const fechasDisponibles = todasLasFechas.filter(
-    (fecha) => !fechasOcupadasSet.has(fecha)
-  );
+  console.log("Fechas Disponibles:", fechasDisponibles);
 
   return fechasDisponibles;
 };
@@ -77,18 +89,27 @@ const buscarFechasDisponibles = async (usuarioId, fechaInicio, fechaFin) => {
  * @returns {Promise<void>} - Devuelve una promesa que resuelve en un objeto JSON con la lista de citas o un objeto JSON con el error.
  */
 controller.citas = async (req, res) => {
-  const citas = await CitaModel.find();
+  const citas = await CitaModel.aggregate([
+    {
+      $lookup: {
+        from: "usuarios",
+        localField: "paciente_id",
+        foreignField: "_id",
+        as: "paciente",
+      },
+    },
+  ]);
   try {
     if (!citas) {
       return res.status(404).send({ msg: "Cita no encontrada" });
     } else {
-      res.status(200).json(citaBD);
+      res.status(200).json(citas);
     }
   } catch (error) {
     res
       .status(500)
       // const errors = controlDeErrores(error);
-      .send(`${error} ---> cita con el ID: ${citaID} no encontrada`);
+      .send(`${error} ---> citas no encontrada`);
   }
 };
 
@@ -103,7 +124,7 @@ controller.citas = async (req, res) => {
 controller.crearCita = async (req, res) => {
   const {
     paciente_id,
-    medico_id,
+    doctor_id,
     fecha,
     hora,
     motivo,
@@ -114,7 +135,7 @@ controller.crearCita = async (req, res) => {
   try {
     const cita = await new CitaModel({
       paciente_id,
-      medico_id,
+      doctor_id,
       fecha,
       hora,
       motivo,
@@ -138,14 +159,16 @@ controller.crearCita = async (req, res) => {
  * @returns {Promise<void>} - Una promesa que resuelve en una vista renderizada con los detalles de la cita o un mensaje de error.
  */
 controller.unicaCita = async (req, res) => {
-  const { id } = req.params;
+  const { _id } = req.body;
 
-  if (!id) {
+  if (!_id) {
     return res.status(400).json({ error: "Se requiere el ID de la Cita" });
   }
 
+  console.log(_id);
+
   try {
-    const cita = await CitaModel.findById(id);
+    const cita = await CitaModel.findById(_id);
 
     if (!cita) {
       return res.status(404).json({ error: "Cita no encontrada" });
@@ -169,33 +192,49 @@ controller.unicaCita = async (req, res) => {
  */
 
 controller.actualizarCita = async (req, res) => {
-  const { id } = req.params;
+  const { _id, ...datos } = req.body;
+  console.log("ID de la cita a actualizar:", _id);
+  console.log("Datos de actualización:", datos);
 
-  if (!id) {
+  if (!_id) {
     return res.status(400).json({ error: "Se requiere el ID de la Cita" });
   }
 
   try {
-    const citaActualizada = await CitaModel.findByIdAndUpdate(
-      id,
-      { $set: req.body },
-      { new: true, runValidators: true }
+    const resultado = await CitaModel.updateOne(
+      { _id: _id },
+      {
+        $set: datos,
+        $currentDate: { updatedAt: true },
+      },
+      { runValidators: true }
     );
 
-    if (!citaActualizada) {
+    console.log("Resultado de la actualización:", resultado);
+
+    if (resultado.matchedCount === 0) {
       return res.status(404).json({ error: "Cita no encontrada" });
     }
 
+    if (resultado.modifiedCount === 0) {
+      return res
+        .status(200)
+        .json({ message: "No se realizaron cambios en la cita" });
+    }
+
+    // Obtener la cita actualizada para enviarla en la respuesta
+    const citaActualizada = await CitaModel.findById(_id);
     res.json(citaActualizada);
   } catch (error) {
     console.error("Error al actualizar la cita:", error);
-    // const errors = controlDeErrores(error);
-    res.status(500).json({ error: "Error al actualizar la cita" });
+    res
+      .status(500)
+      .json({ error: "Error al actualizar la cita", details: error.message });
   }
 };
 
 /**
- * Controlador para cancelar una cita existente.
+ * Controlador para eliminar una cita existente.
  * @function
  * @async
  * @param {Object} req - Objeto de solicitud de Express.
@@ -203,14 +242,14 @@ controller.actualizarCita = async (req, res) => {
  * @returns {Promise<void>} - Devuelve una promesa que resuelve en una respuesta HTTP indicando si la cita fue cancelada o un error.
  */
 controller.eliminarCita = async (req, res) => {
-  const { id } = req.params;
+  const { _id } = req.body;
 
-  if (!id) {
+  if (!_id) {
     return res.status(400).json({ error: "Se requiere el ID de la Cita" });
   }
 
   try {
-    const resultado = await CitaModel.findByIdAndDelete(id);
+    const resultado = await CitaModel.findByIdAndDelete(_id);
 
     if (!resultado) {
       return res.status(404).json({ error: "Cita no encontrada" });
@@ -233,8 +272,9 @@ controller.eliminarCita = async (req, res) => {
  * @returns {Promise<void>} - Devuelve una promesa que resuelve en una respuesta HTTP con las citas del paciente o un error.
  */
 controller.citasPaciente = async (req, res) => {
-  const { paciente_id } = req.params;
+  const { paciente_id } = req.body;
 
+  // Validando que el ID pertenece a un Paciente
   if (!paciente_id) {
     return res.status(400).json({ error: "Se requiere el ID del Paciente" });
   }
@@ -250,17 +290,16 @@ controller.citasPaciente = async (req, res) => {
         .status(404)
         .json({ error: "El Id proporcionado no pertenece a un paciente" });
     }
-
-    res.status(200).json(citas);
   } catch (error) {
-    console.error("Error al buscar la cita:", error);
+    console.error("Error al validar paciente:", error);
     // const errors = controlDeErrores(error);
-    res.status(500).json({ error: "Error al buscar la cita" });
+    res.status(500).json({ error: "Error al comprobar el paciente" });
   }
 
+  // Buscar y devolver las citas del paciente
   try {
     const citas = await CitaModel.findOne({
-      usuario_paciente_id: paciente_id,
+      paciente_id: paciente_id,
     });
 
     if (!citas) {
@@ -283,49 +322,17 @@ controller.citasPaciente = async (req, res) => {
  * @param {Object} res - Objeto de respuesta de Express.
  * @returns {Promise<void>} - Devuelve una promesa que resuelve en una respuesta HTTP con las fechas disponibles o un error.
  */
+
 controller.citasDisponiblesDoctor = async (req, res) => {
-  const { doctorId, fechaInicio, fechaFin } = req.query;
+  const { doctor_id, fechaInicio, fechaFin } = req.body;
 
   // Validar que todos los parámetros necesarios estén presentes
-  if (!doctorId || !fechaInicio || !fechaFin) {
-    return res.status(400).json({ error: "Faltan parámetros requeridos" });
-  }
-
-  // Convertir las fechas de string a objetos Date
-  const fechaInicioDate = new Date(fechaInicio);
-  const fechaFinDate = new Date(fechaFin);
 
   // Comprobar que las fechas son válidas
-  if (isNaN(fechaInicioDate.getTime()) || isNaN(fechaFinDate.getTime())) {
-    return res.status(400).json({ error: "Fechas inválidas" });
-  }
 
   // Validar el doctorId
-  try {
-    const usuarioSolicitado = await UsuarioModel.findOne({
-      _id: doctorId,
-      rol: "doctor",
-    });
-    if (!usuarioSolicitado) {
-      res.status(404).send({ mensaje: "Doctor no encontrado" });
-    }
-  } catch (error) {
-    res.status(500).send(`Error al buscar al doctor: ${error.message}`);
-  }
 
   // Buscar fechas disponibles
-
-  try {
-    const fechasDisponibles = await buscarFechasDisponibles(
-      doctorId,
-      rangoInicio,
-      rangoFin
-    );
-    res.json(fechasDisponibles);
-  } catch (error) {
-    console.error("Error al buscar fechas disponibles:", error);
-    res.status(500).json({ error: "Error al buscar fechas disponibles" });
-  }
 };
 
 // POST: Enviar recordatorio de cita

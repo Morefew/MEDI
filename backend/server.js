@@ -14,11 +14,19 @@ app.use(cookieParser());
 
 app.use(express.json());
 
-// app.use(bodyParser.urlencoded({ extended: true }));
-
 // SERVER TEST
 app.get("/", (req, res) => {
-  res.send("Hola Mundo SERVIDOR CORRIENDO desde Express");
+  res.status(200).json({
+    Saludo: req.query.Saludo || "Hola Mundo Test",
+    Status: req.query.Status || "SERVIDOR CORRIENDO",
+  });
+});
+
+app.post("/", (req, res) => {
+  res.status(200).json({
+    Saludo: req.body.Saludo,
+    Status: req.body.Status,
+  });
 });
 
 app.use(usuarioRouter);
