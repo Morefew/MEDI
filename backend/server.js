@@ -3,9 +3,11 @@ const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 const citasRouter = require("./routes/citasRutas");
 const historialMedRouter = require("./routes/historialMedRutas");
+const inventarioRutas = require("./routes/inventarioRutas")
 
 require("dotenv").config();
 require("./config/db");
+require("./config/dbInventario");
 
 const app = express();
 
@@ -21,6 +23,7 @@ app.get("/", (req, res) => {
 
 app.use(citasRouter);
 app.use(historialMedRouter);
+app.use(inventarioRutas)
 
 const serverPort = process.env.SERVER_PORT;
 app.listen(serverPort, () => {

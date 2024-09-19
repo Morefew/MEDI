@@ -37,9 +37,9 @@ controller.getOneHistorial = async (req, res) => {
 
 controller.addHistorial = async (req, res) => {
 
-  console.log(req.body);
+  
   const historial = new historialModel(req.body)
-  console.log(historial);
+  
 
   try {
     await historial.save() 
