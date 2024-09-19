@@ -2,16 +2,16 @@ const mongoose = require("mongoose");
 
 const citaMedicaSchema = new mongoose.Schema(
   {
-    paciente_id: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Paciente",
-      required: [true, "Por favor seleccione el paciente para la cita"],
-    },
-    medico_id: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Medico",
-      required: [true, "Por favor seleccione el Doctor para la cita"],
-    },
+    // paciente_id: {
+    //   type: mongoose.Schema.Types.ObjectId,
+    //   ref: "Paciente",
+    //   required: [true, "Por favor seleccione el paciente para la cita"],
+    // },
+    // medico_id: {
+    //   type: mongoose.Schema.Types.ObjectId,
+    //   ref: "Medico",
+    //   required: [true, "Por favor seleccione el Doctor para la cita"],
+    // },
     fecha: {
       type: Date,
       required: [true, "Por favor indique una fecha para la cita"],

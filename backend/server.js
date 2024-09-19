@@ -5,9 +5,11 @@ const citasRouter = require("./routes/citasRutas");
 const historialMedRouter = require("./routes/historialMedRutas");
 const inventarioRutas = require("./routes/inventarioRutas")
 
+
 require("dotenv").config();
 require("./config/db");
 require("./config/dbInventario");
+require("./config/dbCitas");
 
 const app = express();
 
@@ -26,6 +28,7 @@ app.use(express.json);
 app.use(citasRouter);
 app.use(historialMedRouter);
 app.use(inventarioRutas)
+
 
 const serverPort = process.env.SERVER_PORT;
 app.listen(serverPort, () => {

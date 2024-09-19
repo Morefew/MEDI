@@ -4,7 +4,7 @@
  */
 
 const CitaModel = require("../models/cita.model");
-require("../config/db");
+require("../config/dbCitas");
 
 const controller = {};
 
@@ -41,9 +41,10 @@ controller.citas = async (req, res) => {
  * @returns {Promise<void>} - Una promesa que resuelve en un objeto JSON con la nueva cita o un objeto JSON con el error.
  */
 controller.crearCita = async (req, res) => {
+  console.log(req.body)
   const {
-    paciente_id,
-    medico_id,
+    // paciente_id,
+    // medico_id,
     fecha,
     hora,
     motivo,
@@ -51,10 +52,11 @@ controller.crearCita = async (req, res) => {
     notificaciones,
   } = req.body;
 
+  
   try {
     const cita = await new CitaModel({
-      paciente_id,
-      medico_id,
+      // paciente_id,
+      // medico_id,
       fecha,
       hora,
       motivo,
@@ -63,6 +65,7 @@ controller.crearCita = async (req, res) => {
     }).save();
     // respuesta JSON. Se puede usar como notificacion:
     res.status(201).json(cita);
+
   } catch (error) {
     // const errors = controlDeErrores(error);
     res.status(400).json({ error: error.message });
