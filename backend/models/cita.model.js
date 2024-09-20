@@ -26,7 +26,7 @@ const citaMedicaSchema = new mongoose.Schema(
     },
     estado: {
       type: String,
-      enum: ["confirmada", "cancelada", "pendiente"],
+      enum: ["confirmada", "pendiente"],
       default: "pendiente",
     },
     notificaciones: {
