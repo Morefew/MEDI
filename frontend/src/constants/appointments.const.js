@@ -26,11 +26,11 @@ export const appointmentSlots = [
 ];
 
 export const defaultAppointementFields = {
-    doctor_id: 0,
-    patient_id: 1,
+    paciente_id: "65f0a1b1e85263001234a009",
+    doctor_id: "65f0a1b1e85263001234a003",
     fecha: '',
     hora: '',
     motivo: '',
     estado: 'pendiente',
-    Notification: false
+    notificaciones: false
 };

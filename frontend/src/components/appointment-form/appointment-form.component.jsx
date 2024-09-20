@@ -18,11 +18,11 @@ const AppointmentForm = () => {
   const [appointments, setAppointments] = useState([]);
 
   // Cargar citas desde el backend al montar el componente o cuando se selecciona una fecha
-  useEffect(() => {
+  /* useEffect(() => {
     if (selectedDate) {
       fetchAppointmentsByDate(selectedDate);
     }
-  }, [selectedDate]);
+  }, [selectedDate]); */
 
   /* const fetchAppointmentsByDate = async (date) => {
     try {
@@ -35,13 +35,15 @@ const AppointmentForm = () => {
 
   const handleAppointmetSubmit = async () => {
     try {
+      
       const newAppointment = { ...appointmentFields };
-      await axios.post("api/cita/crear", newAppointment); // Guardar nueva cita
+      console.log(newAppointment)
+      await axios.post("http://localhost:5000/api/cita/crear", newAppointment); // Guardar nueva cita
       alert("Cita reservada con éxito");
       /* fetchAppointmentsByDate(selectedDate); */ // Actualizar 
     } catch (error) {
       console.error("Error al reservar la cita", error);
-      alert("Hubo un error al reservar la cita. Inténtalo nuevamente.");
+      alert("Hubo un error al reservar la cita. Inténtalo nuevamente.", error);
     }
   };
 
@@ -115,9 +117,10 @@ const AppointmentForm = () => {
               key={slot}
               selected={selectedSlot === slot}
               onClick={() => handleSlotClick(slot)}
-              disabled={isSlotTaken(slot)} // Deshabilitar si el slot ya está tomado
+             /*  disabled={isSlotTaken(slot)} // Deshabilitar si el slot ya está tomado */
             >
-              {slot} {isSlotTaken(slot) ? "(Ocupado)" : ""}
+              {/* {slot} {isSlotTaken(slot) ? "(Ocupado)" : ""} */}
+              {slot}
             </SlotButton>
           ))}
         </SlotSelector>

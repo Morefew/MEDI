@@ -9,13 +9,11 @@ const Calendar = ({ onSelectDate, selected }) => {
 
     const getDates = () => {
         const _dates = [];
-        let date = moment.utc().startOf('isoWeek');
-        for (let i = 0; i < 6; i++) {
-            // Solo añade de lunes a sábado
-            if (date.isoWeekday() !== 7) {
-                _dates.push(date.clone());
+        for (let i = 0; i < 14; i++) {
+            const date = moment.utc().add(i, 'days');
+            if (date.day() !== 0) {
+                _dates.push(date);
             }
-            date.add(1, 'days')
         }
         setDates(_dates);
     };
