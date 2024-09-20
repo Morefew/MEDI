@@ -1,5 +1,7 @@
 const UsuarioModel = require("../models/usuario.model");
 
+require("../config/db");
+
 const controller = {};
 
 // Controlador para obtener todos los usuarios
