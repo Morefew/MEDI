@@ -132,6 +132,7 @@ controller.citas = async (req, res) => {
  * @returns {Promise<void>} - Una promesa que resuelve en un objeto JSON con la nueva cita o un objeto JSON con el error.
  */
 controller.crearCita = async (req, res) => {
+  console.log(req.body);
   const {
     paciente_id,
     doctor_id,

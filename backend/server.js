@@ -5,9 +5,12 @@ const citasRouter = require("./routes/citas.rutas");
 const historialMedRouter = require("./routes/historialMed.rutas");
 const usuarioRouter = require("./routes/usuario.rutas");
 const cors = require("cors");
+const inventarioRutas = require("./routes/inventarioRutas");
 
 require("dotenv").config();
 require("./config/db");
+require("./config/dbInventario");
+require("./config/dbCitas");
 
 const app = express();
 
@@ -33,6 +36,7 @@ app.post("/", (req, res) => {
 app.use(usuarioRouter);
 app.use(citasRouter);
 app.use(historialMedRouter);
+app.use(inventarioRutas);
 
 const serverPort = process.env.SERVER_PORT;
 app.listen(serverPort, () => {
