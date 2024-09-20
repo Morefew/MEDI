@@ -1,10 +1,13 @@
 const mongoose = require("mongoose");
 require("dotenv").config();
 
-const collection = process.env.DB_COLLECTION;
-const dbURI = process.env.DB_URI;
-const dbPort = process.env.DB_PORT;
-const url = `${dbURI}:${dbPort}/${collection}`;
+//Conexion a BD Local
+// const url = process.env.LOCAL_URL;
+
+//Conexion BD Atlas
+const url = process.env.ATLAS_URL;
+
+console.log(url);
 
 try {
   mongoose.connect(url);
