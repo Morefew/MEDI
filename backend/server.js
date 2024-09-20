@@ -4,6 +4,7 @@ const cookieParser = require("cookie-parser");
 const citasRouter = require("./routes/citas.rutas");
 const historialMedRouter = require("./routes/historialMed.rutas");
 const usuarioRouter = require("./routes/usuario.rutas");
+const cors = require("cors");
 
 require("dotenv").config();
 require("./config/db");
@@ -11,7 +12,7 @@ require("./config/db");
 const app = express();
 
 app.use(cookieParser());
-
+app.use(cors());
 app.use(express.json());
 
 // SERVER TEST

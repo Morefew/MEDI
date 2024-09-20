@@ -98,6 +98,16 @@ controller.citas = async (req, res) => {
         as: "paciente",
       },
     },
+    {
+      $unwind: "$usuarios",
+    },
+    {
+      $group: {
+        id: "$_id",
+        Nombre: { $first: "$nombre" },
+        Apellido: { $first: "$primer_apellido" },
+      },
+    },
   ]);
   try {
     if (!citas) {
