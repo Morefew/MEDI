@@ -10,7 +10,7 @@ const url = process.env.ATLAS_URL;
 console.log(url);
 
 try {
-  mongoose.connect(urlWeb);
+  mongoose.connect(url);
   console.log("MongoDb corriendo");
 } catch (error) {
   console.error();
