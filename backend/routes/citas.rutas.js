@@ -78,7 +78,6 @@ router.delete("/api/cita/eliminar", citaController.eliminarCita);
 
 // router.post("/citas/:id/notificacion", citaController.notificarCita);
 
-// TODO
 /**
  * Ruta para obtener todos los tipos de citas relacionadas a un paciente específico.
  * @name GET/api/citas/fechas-disponibles/paciente/:id
