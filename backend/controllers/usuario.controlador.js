@@ -92,7 +92,7 @@ controller.usuarioCrear = async (req, res) => {
     const user = await newUser.save();
     res.status(201).json(user);
   } catch (error) {
-    res.status(400).json({ errors });
+    res.status(400).json({ error });
   }
 };
 
