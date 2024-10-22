@@ -9,14 +9,14 @@ const inventarioRutas = require("./routes/inventarioRutas");
 
 require("dotenv").config();
 require("./config/db");
-require("./config/dbInventario");
-require("./config/dbCitas");
+
+const {data} = require("express-session/session/cookie");
 
 const app = express();
 
-app.use(cookieParser());
 app.use(cors());
 app.use(express.json());
+app.use(cookieParser());
 
 // SERVER TEST
 app.get("/", (req, res) => {
@@ -41,4 +41,6 @@ app.use(inventarioRutas);
 const serverPort = process.env.SERVER_PORT;
 app.listen(serverPort, () => {
   console.log(`Servidor corriendo en puerto ${serverPort}`);
+
 });
+
