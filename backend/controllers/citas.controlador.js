@@ -7,7 +7,7 @@ const CitaModel = require("../models/cita.model");
 const UsuarioModel = require("../models/usuario.model");
 const mongoose = require("mongoose");
 require("../config/db");
-const {ObjectId} = require("mongodb");
+const { ObjectId } = require("mongodb");
 
 /**
  * Objeto que contiene los controladores para el módulo de gestión de citas.
@@ -30,27 +30,28 @@ const CITASMAX = 8;
  * @returns {Promise<void>} - Devuelve una promesa que resuelve en un objeto JSON con la lista de citas o un objeto JSON con el error.
  */
 controller.citas = async (req, res) => {
-  const citas = await CitaModel.aggregate([  {
-    $lookup: {
-      from: "usuarios",
-      localField: "doctor_id",
-      foreignField: "_id",
-      as: "doctor"
-    }
-  },
+  const citas = await CitaModel.aggregate([
+    {
+      $lookup: {
+        from: "usuarios",
+        localField: "doctor_id",
+        foreignField: "_id",
+        as: "doctor",
+      },
+    },
     {
       $lookup: {
         from: "usuarios",
         localField: "paciente_id",
         foreignField: "_id",
-        as: "paciente"
-      }
+        as: "paciente",
+      },
     },
     {
-      $unwind: "$doctor"
+      $unwind: "$doctor",
     },
     {
-      $unwind: "$paciente"
+      $unwind: "$paciente",
     },
     {
       $project: {
@@ -65,9 +66,9 @@ controller.citas = async (req, res) => {
         "doctor.primer_apellido": 1,
         "paciente._id": 1,
         "paciente.nombre": 1,
-        "paciente.primer_apellido": 1
-      }
-    }
+        "paciente.primer_apellido": 1,
+      },
+    },
   ]);
   try {
     if (!citas) {
@@ -94,23 +95,43 @@ controller.citas = async (req, res) => {
 controller.crearCita = async (req, res) => {
   console.log(req.body);
   const {
-    paciente_id,
-    doctor_id,
+    especialista,
     fecha,
     hora,
-    motivo,
+    tipo_servicio,
     estado,
+    paciente_nombre,
+    paciente_edad,
+    paciente_nacionalidad,
+    paciente_cedula,
+    paciente_genero,
+    paciente_direccion,
+    tipo_paciente,
+    solicitante_nombre,
+    solicitante_apellido,
+    afiliacion_ars,
+    centro_nombre,
     notificaciones,
   } = req.body;
 
   try {
     const cita = await new CitaModel({
-      paciente_id,
-      doctor_id,
+      especialista,
       fecha,
       hora,
-      motivo,
+      tipo_servicio,
       estado,
+      paciente_nombre,
+      paciente_edad,
+      paciente_nacionalidad,
+      paciente_cedula,
+      paciente_genero,
+      paciente_direccion,
+      tipo_paciente,
+      solicitante_nombre,
+      solicitante_apellido,
+      afiliacion_ars,
+      centro_nombre,
       notificaciones,
     }).save();
     // respuesta JSON. Se puede usar como notificacion:
@@ -137,35 +158,36 @@ controller.unicaCita = async (req, res) => {
   }
 
   console.log(_id);
-  console.log(typeof (_id));
+  console.log(typeof _id);
 
   try {
-    const cita = await CitaModel.aggregate([{
-      $match: {
-        _id: new ObjectId(_id)
-      }
+    const cita = await CitaModel.aggregate([
+      {
+        $match: {
+          _id: new ObjectId(_id),
+        },
       },
       {
-      $lookup: {
-        from: "usuarios",
-        localField: "doctor_id",
-        foreignField: "_id",
-        as: "doctor"
-      }
-    },
+        $lookup: {
+          from: "usuarios",
+          localField: "doctor_id",
+          foreignField: "_id",
+          as: "doctor",
+        },
+      },
       {
         $lookup: {
           from: "usuarios",
           localField: "paciente_id",
           foreignField: "_id",
-          as: "paciente"
-        }
+          as: "paciente",
+        },
       },
       {
-        $unwind: "$doctor"
+        $unwind: "$doctor",
       },
       {
-        $unwind: "$paciente"
+        $unwind: "$paciente",
       },
       {
         $project: {
@@ -180,10 +202,10 @@ controller.unicaCita = async (req, res) => {
           "doctor.primer_apellido": 1,
           "paciente._id": 1,
           "paciente.nombre": 1,
-          "paciente.primer_apellido": 1
-        }
-      }
-    ])
+          "paciente.primer_apellido": 1,
+        },
+      },
+    ]);
 
     if (!cita) {
       return res.status(404).json({ error: "Cita no encontrada" });
@@ -313,22 +335,23 @@ controller.citasPaciente = async (req, res) => {
 
   // Buscar y devolver las citas del paciente
   try {
-    const citas = await CitaModel.aggregate([{
-      $match: {
-        paciente_id: new ObjectId(paciente_id)
-      }
-    },
-        {
-          $lookup: {
-            from: "usuarios",
-            localField: "paciente_id",
-            foreignField: "_id",
-            as: "paciente"
-          }
+    const citas = await CitaModel.aggregate([
+      {
+        $match: {
+          paciente_id: new ObjectId(paciente_id),
         },
-        {
-          $unwind: "$paciente"
+      },
+      {
+        $lookup: {
+          from: "usuarios",
+          localField: "paciente_id",
+          foreignField: "_id",
+          as: "paciente",
         },
+      },
+      {
+        $unwind: "$paciente",
+      },
       {
         $project: {
           "paciente._id": 1,
@@ -339,10 +362,10 @@ controller.citasPaciente = async (req, res) => {
           hora: 1,
           motivo: 1,
           estado: 1,
-          createdAt: 1
-        }
-      }
-  ]);
+          createdAt: 1,
+        },
+      },
+    ]);
 
     if (!citas) {
       return res.status(404).json({ error: "El paciente no tiene citas" });
@@ -386,11 +409,11 @@ controller.citasDisponiblesDoctor = async (req, res) => {
   }
   // Comprobar que la fecha de la entrada se válida de acuerdo a la
   // especificación ISO 8601 (1970-01-01T00:00:00.000+00:00)
-  // if (
-  //   !fecha.match(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}\+\d{2}:\d{2}$/)
-  // ) {
-  //   return res.status(400).json({ error: "La fecha no es válida" });
-  // }
+  if (
+    !fecha.match(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}\+\d{2}:\d{2}$/)
+  ) {
+    return res.status(400).json({ error: "La fecha no es válida" });
+  }
 
   console.log("Fecha Inicial:", fechaInicial);
   console.log("Fecha Final:", fechaFinal);
@@ -436,7 +459,6 @@ controller.citasDisponiblesDoctor = async (req, res) => {
 
     // Retornar el objeto con las fechas disponibles
     res.status(200).json(fechasDisponibles);
-
   } catch (error) {
     console.error("Error al buscar la cita:", error);
     // const errors = controlDeErrores(error);
@@ -462,40 +484,45 @@ function fechasDisponiblesDoctor(fecha, citas) {
     const date = new Date(fechaInicial.getTime() + i * 24 * 60 * 60 * 1000);
     for (let hour = 8; hour < 20; hour++) {
       values.push(
-          new Date(Date.UTC(
-              date.getUTCFullYear(),
-              date.getUTCMonth(),
-              date.getUTCDate(),
-              hour,
-              0,
-              0,
-              0,
-          ))
+        new Date(
+          Date.UTC(
+            date.getUTCFullYear(),
+            date.getUTCMonth(),
+            date.getUTCDate(),
+            hour,
+            0,
+            0,
+            0
+          )
+        )
       );
     }
   }
 
   console.log("Citas:", citas);
-  console.log(typeof (citas));
+  console.log(typeof citas);
 
   // Eliminar las fechas que coinciden con las citas
   citas.forEach((cita) => {
     const citaDate = new Date(cita.fecha);
     console.log("Fecha de la citaDate: " + citaDate);
-    values.splice(values.findIndex((value) =>
-        value.getUTCFullYear() === citaDate.getUTCFullYear() &&
-        value.getUTCMonth() === citaDate.getUTCMonth() &&
-        value.getUTCDate() === citaDate.getUTCDate() &&
-        value.getUTCHours() === citaDate.getUTCHours()&&
-        value.getUTCMinutes() === citaDate.getUTCMinutes()&&
-        value.getUTCSeconds() === citaDate.getUTCSeconds() &&
-        value.getUTCMilliseconds() === citaDate.getUTCMilliseconds()
-    ), 1);
+    values.splice(
+      values.findIndex(
+        (value) =>
+          value.getUTCFullYear() === citaDate.getUTCFullYear() &&
+          value.getUTCMonth() === citaDate.getUTCMonth() &&
+          value.getUTCDate() === citaDate.getUTCDate() &&
+          value.getUTCHours() === citaDate.getUTCHours() &&
+          value.getUTCMinutes() === citaDate.getUTCMinutes() &&
+          value.getUTCSeconds() === citaDate.getUTCSeconds() &&
+          value.getUTCMilliseconds() === citaDate.getUTCMilliseconds()
+      ),
+      1
+    );
   });
 
   return values;
 }
-
 
 // POST: Enviar recordatorio de cita
 // router.post("/citas/:id/notificacion", citaController.notificarCita);
