@@ -81,7 +81,7 @@ const citaMedicaSchema = new mongoose.Schema(
       trim: true,
     },
     centro_nombre: {
-      type: Number,
+      type: String,
       required: [true, "Por favor indique el nombre del centro para la cita"],
     },
   },
