@@ -9,8 +9,7 @@ const inventarioRutas = require("./routes/inventarioRutas");
 
 require("dotenv").config();
 require("./config/db");
-require("./config/dbInventario");
-require("./config/dbCitas");
+
 const {data} = require("express-session/session/cookie");
 
 const app = express();
