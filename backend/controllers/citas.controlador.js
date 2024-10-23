@@ -88,6 +88,7 @@ controller.citasCentro = async (req, res) => {
  * @param {Object} res - Objeto de respuesta de Express.
  * @returns {Promise<void>} - Devuelve una promesa que resuelve en una respuesta HTTP con las citas del especialista o un error.
  */
+
 controller.citasEspecialista = async (req, res) => {
   const especialistaBuscado = req.query.especialista;
   try {
@@ -171,6 +172,7 @@ controller.especialistas = async (req, res) => {
  * @param {Object} res - Objeto de respuesta de Express.
  * @returns {Promise<void>} - Devuelve una promesa que resuelve en una respuesta HTTP con la lista de centros o un error.
  */
+
 controller.centros = async (req, res) => {
   try {
     const centro = await CitaModel.aggregate([

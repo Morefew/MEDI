@@ -62,6 +62,7 @@ router.get("/api/especialistas", citaController.especialistas);
  * @param {string} path - Ruta de la API.
  * @param {function} middleware - Controlador para manejar la solicitud.
  */
+
 router.get("/api/centros", citaController.centros);
 
 /**
