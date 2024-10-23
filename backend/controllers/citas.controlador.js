@@ -30,46 +30,7 @@ const CITASMAX = 8;
  * @returns {Promise<void>} - Devuelve una promesa que resuelve en un objeto JSON con la lista de citas o un objeto JSON con el error.
  */
 controller.citas = async (req, res) => {
-  const citas = await CitaModel.aggregate([
-    {
-      $lookup: {
-        from: "usuarios",
-        localField: "doctor_id",
-        foreignField: "_id",
-        as: "doctor",
-      },
-    },
-    {
-      $lookup: {
-        from: "usuarios",
-        localField: "paciente_id",
-        foreignField: "_id",
-        as: "paciente",
-      },
-    },
-    {
-      $unwind: "$doctor",
-    },
-    {
-      $unwind: "$paciente",
-    },
-    {
-      $project: {
-        _id: 1,
-        fecha: 1,
-        hora: 1,
-        motivo: 1,
-        estado: 1,
-        createdAt: 1,
-        "doctor._id": 1,
-        "doctor.nombre": 1,
-        "doctor.primer_apellido": 1,
-        "paciente._id": 1,
-        "paciente.nombre": 1,
-        "paciente.primer_apellido": 1,
-      },
-    },
-  ]);
+  const citas = await CitaModel.find();
   try {
     if (!citas) {
       return res.status(404).send({ msg: "Cita no encontrada" });
@@ -81,6 +42,155 @@ controller.citas = async (req, res) => {
       .status(500)
       // const errors = controlDeErrores(error);
       .send(`${error} ---> citas no encontrada`);
+  }
+};
+
+/**
+ * Controlador para obtener la lista de citas de un centro.
+ * @function
+ * @async
+ * @param {Object} req - Objeto de solicitud de Express.
+ * @param {Object} res - Objeto de respuesta de Express.
+ * @returns {Promise<void>} - Devuelve una promesa que resuelve en un objeto JSON con la lista de citas o un objeto JSON con el error.
+ */
+controller.citasCentro = async (req, res) => {
+  const centroBuscado = req.query.centro;
+  console.log(`parametro del query: ${centroBuscado}`);
+  try {
+    if (!centroBuscado) {
+      return res.status(400).json({
+        message: "El nombre del centro es necesario para la búsqueda",
+      });
+    }
+
+    const citas = await CitaModel.find({ centro_nombre: `${centroBuscado}` });
+
+    if (!citas || citas.length === 0) {
+      return res
+        .status(404)
+        .json({ mensaje: `No se encontraron citas para ${centroBuscado}` });
+    }
+
+    return res.status(200).json(citas);
+  } catch (error) {
+    res
+      .status(500)
+      // const errors = controlDeErrores(error);
+      .send(`${error} ---> Error al buscar el centro: ${centroBuscado}`);
+  }
+};
+
+controller.citasEspecialista = async (req, res) => {
+  const especialistaBuscado = req.query.especialista;
+  try {
+    if (!especialistaBuscado) {
+      return res.status(400).json({
+        mensaje: "El nombre del especialista es necesario para la búsqueda",
+      });
+    }
+
+    const citas = await CitaModel.find({
+      especialista: `${especialistaBuscado}`,
+    });
+
+    if (citas) {
+      res.status(200).json(citas);
+    }
+  } catch (error) {
+    res
+      .status(500)
+      // const errors = controlDeErrores(error);
+      .send(`${error} ---> Error al buscar a: ${especialistaBuscado}`);
+  }
+};
+
+/**
+ * Controlador para obtener los especialistas disponibles en la base de datos
+ *
+ * */
+controller.especialistas = async (req, res) => {
+  try {
+    const especialistas = await CitaModel.aggregate([
+      {
+        $match: {
+          especialista: {
+            $exists: true,
+            $ne: "",
+          },
+        },
+      },
+      {
+        $group: {
+          _id: "$especialista",
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          value: "$_id",
+          label: "$_id",
+        },
+      },
+      {
+        $sort: {
+          label: 1,
+        },
+      },
+    ]);
+
+    if (!especialistas) {
+      return res.status(404).json({ error: "No se encontraron especialistas" });
+    }
+
+    res.status(200).json(especialistas);
+  } catch (error) {
+    res
+      .status(500)
+      // const errors = controlDeErrores(error);
+      .send(`${error} ---> Error al buscar los especialistas`);
+  }
+};
+
+controller.centros = async (req, res) => {
+  try {
+    const centro = await CitaModel.aggregate([
+      {
+        $match: {
+          centro_nombre: {
+            $exists: true,
+            $ne: "",
+          },
+        },
+      },
+      {
+        $group: {
+          _id: "$centro_nombre",
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          value: "$_id",
+          label: "$_id",
+        },
+      },
+      {
+        $sort: {
+          label: 1,
+        },
+      },
+    ]);
+
+    if (!centro) {
+      return res.status(404).json({ error: "No se encontraron centros" });
+    }
+
+    res.status(200).json(centro);
+  } catch (error) {
+    res
+      .status(500)
+      // const errors = controlDeErrores(error);
+      .send(`${error} ---> Error al buscar los centros`);
   }
 };
 
@@ -161,51 +271,7 @@ controller.unicaCita = async (req, res) => {
   console.log(typeof _id);
 
   try {
-    const cita = await CitaModel.aggregate([
-      {
-        $match: {
-          _id: new ObjectId(_id),
-        },
-      },
-      {
-        $lookup: {
-          from: "usuarios",
-          localField: "doctor_id",
-          foreignField: "_id",
-          as: "doctor",
-        },
-      },
-      {
-        $lookup: {
-          from: "usuarios",
-          localField: "paciente_id",
-          foreignField: "_id",
-          as: "paciente",
-        },
-      },
-      {
-        $unwind: "$doctor",
-      },
-      {
-        $unwind: "$paciente",
-      },
-      {
-        $project: {
-          _id: 1,
-          fecha: 1,
-          hora: 1,
-          motivo: 1,
-          estado: 1,
-          createdAt: 1,
-          "doctor._id": 1,
-          "doctor.nombre": 1,
-          "doctor.primer_apellido": 1,
-          "paciente._id": 1,
-          "paciente.nombre": 1,
-          "paciente.primer_apellido": 1,
-        },
-      },
-    ]);
+    const cita = await CitaModel.findById(_id);
 
     if (!cita) {
       return res.status(404).json({ error: "Cita no encontrada" });
@@ -309,69 +375,47 @@ controller.eliminarCita = async (req, res) => {
  * @returns {Promise<void>} - Devuelve una promesa que resuelve en una respuesta HTTP con las citas del paciente o un error.
  */
 controller.citasPaciente = async (req, res) => {
-  const { paciente_id } = req.body;
+  const { paciente_nombre } = req.body;
 
   // Validando que el ID pertenece a un Paciente
-  if (!paciente_id) {
+  if (!paciente_nombre) {
     return res.status(400).json({ error: "Se requiere el ID del Paciente" });
   }
 
-  try {
-    const paciente = await UsuarioModel.findOne({
-      _id: paciente_id,
-      rol: "paciente",
-    });
-
-    if (!paciente) {
-      return res
-        .status(404)
-        .json({ error: "El Id proporcionado no pertenece a un paciente" });
-    }
-  } catch (error) {
-    console.error("Error al validar paciente:", error);
-    // const errors = controlDeErrores(error);
-    res.status(500).json({ error: "Error al comprobar el paciente" });
-  }
-
   // Buscar y devolver las citas del paciente
+
   try {
-    const citas = await CitaModel.aggregate([
+    const citasPaciente = await CitaModel.aggregate([
       {
         $match: {
-          paciente_id: new ObjectId(paciente_id),
+          paciente_nombre: paciente_nombre,
         },
-      },
-      {
-        $lookup: {
-          from: "usuarios",
-          localField: "paciente_id",
-          foreignField: "_id",
-          as: "paciente",
-        },
-      },
-      {
-        $unwind: "$paciente",
       },
       {
         $project: {
-          "paciente._id": 1,
-          "paciente.nombre": 1,
-          "paciente.primer_apellido": 1,
-          _id: 1,
+          _id: 0,
+          paciente_nombre: "$paciente_nombre",
+          paciente_edad: "$paciente_edad",
+          especialista: "$especialista",
+          centro_nombre: "$centro_nombre",
+          fecha: "$fecha",
+          hora: "$hora",
+          tipo_servicio: "$tipo_servicio",
+          estado: "$estado",
+        },
+      },
+      {
+        $sort: {
           fecha: 1,
-          hora: 1,
-          motivo: 1,
-          estado: 1,
-          createdAt: 1,
         },
       },
     ]);
 
-    if (!citas) {
+    if (!citasPaciente) {
       return res.status(404).json({ error: "El paciente no tiene citas" });
     }
 
-    res.status(200).json(citas);
+    res.status(200).json(citasPaciente);
   } catch (error) {
     console.error("Error al buscar la cita:", error);
     // const errors = controlDeErrores(error);
@@ -389,7 +433,7 @@ controller.citasPaciente = async (req, res) => {
  */
 
 controller.citasDisponiblesDoctor = async (req, res) => {
-  const { doctor_id, fecha } = req.body;
+  const { especialista, fecha } = req.body;
   // Rango de fechas a buscar = 14 días
   let RANGO_DE_FECHAS = 14 * 24 * 60 * 60 * 1000;
   let fechaInicial = new Date(fecha);
@@ -398,36 +442,34 @@ controller.citasDisponiblesDoctor = async (req, res) => {
   let citas;
   let fechasDisponibles = [];
 
-  console.log("Doctor ID:", doctor_id);
+  console.log("Doctor ID:", especialista);
   console.log("Fecha:", fecha);
 
   // Validar que todos los parámetros necesarios estén presentes
-  if (!doctor_id || !fecha) {
+  if (!especialista || !fecha) {
     return res
       .status(400)
-      .json({ error: "Se requiere el ID del Doctor y la fecha" });
+      .json({ error: "Se requiere el nombre del Doctor y la fecha" });
   }
   // Comprobar que la fecha de la entrada se válida de acuerdo a la
   // especificación ISO 8601 (1970-01-01T00:00:00.000+00:00)
-  if (
-    !fecha.match(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}\+\d{2}:\d{2}$/)
-  ) {
-    return res.status(400).json({ error: "La fecha no es válida" });
-  }
+  // if (!fecha.match(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{2}.\d{3}Z/)) {
+  //   return res.status(400).json({ error: "La fecha no es válida" });
+  // }
 
   console.log("Fecha Inicial:", fechaInicial);
   console.log("Fecha Final:", fechaFinal);
 
   // Comprobar que el doctorId esté en la base de datos.
   try {
-    doctor = await UsuarioModel.findOne({
-      _id: doctor_id,
-      rol: "doctor",
+    doctor = await CitaModel.findOne({
+      especialista: especialista,
     });
-    if (!doctor) {
-      return res
-        .status(404)
-        .json({ error: "El Id proporcionado no pertenece a un doctor" });
+    if (!especialista) {
+      return res.status(404).json({
+        error:
+          "El Nombre proporcionado no pertenece a un especialista del centro",
+      });
     }
   } catch (error) {
     console.error("Error al validar doctor:", error);
@@ -440,7 +482,7 @@ controller.citasDisponiblesDoctor = async (req, res) => {
   // laborales y que sus estados deben ser: ["confirmada", "pendiente"]
   try {
     citas = await CitaModel.find({
-      doctor_id: doctor_id,
+      especialista: especialista,
       fecha: {
         $gte: fechaInicial,
         $lte: fechaFinal,
@@ -475,13 +517,14 @@ controller.citasDisponiblesDoctor = async (req, res) => {
  */
 function fechasDisponiblesDoctor(fecha, citas) {
   let fechaInicial = new Date(fecha);
-  console.log("Fecha de la Inicial: " + fechaInicial);
+  console.log("Fecha Inicial: " + fechaInicial);
 
   // Partiendo de la fechaInicial, generar un arreglo de fechas con horas laborales
   // (de 8:00 a 19:00, lunes a sábado)
   const values = [];
   for (let i = 0; i < 6; i++) {
     const date = new Date(fechaInicial.getTime() + i * 24 * 60 * 60 * 1000);
+    console.log("date variable: " + date);
     for (let hour = 8; hour < 20; hour++) {
       values.push(
         new Date(

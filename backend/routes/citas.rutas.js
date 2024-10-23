@@ -19,9 +19,13 @@ const parsearCampos = require("../middleware/parsearCampos");
  * @param {function} middleware - Controlador para manejar la solicitud.
  */
 router.get("/api/citas", citaController.citas);
-// router.get("/api/citas", (req, res) => {
-//   res.send("Hola Mundo CITAS CORRIENDO desde Express");
-// });
+
+router.get("/api/citas/centro", citaController.citasCentro);
+
+router.get("/api/citas/especialista", citaController.citasEspecialista);
+router.get("/api/especialistas", citaController.especialistas);
+router.get("/api/centros", citaController.centros);
+
 /**
  * Ruta para crear una nueva cita.
  * @name POST/crear-cita
