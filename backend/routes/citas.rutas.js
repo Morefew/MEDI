@@ -19,9 +19,51 @@ const parsearCampos = require("../middleware/parsearCampos");
  * @param {function} middleware - Controlador para manejar la solicitud.
  */
 router.get("/api/citas", citaController.citas);
-// router.get("/api/citas", (req, res) => {
-//   res.send("Hola Mundo CITAS CORRIENDO desde Express");
-// });
+
+/**
+ * Ruta para obtener la lista citas de un centro.
+ * @name GET/api/citas/centro
+ * @function
+ * @memberof module:CitaRoutes
+ * @inner
+ * @param {string} path - Ruta de la API.
+ * @param {function} middleware - Controlador para manejar la solicitud.
+ */
+router.get("/api/citas/centro", citaController.citasCentro);
+
+/**
+ * Ruta para obtener las citas de un especialista específico.
+ * @name GET/api/citas/especialista
+ * @function
+ * @memberof module:CitaRoutes
+ * @inner
+ * @param {string} path - Ruta de la API.
+ * @param {function} middleware - Controlador para manejar la solicitud.
+ */
+router.get("/api/citas/especialista", citaController.citasEspecialista);
+
+/**
+ * Ruta para obtener la lista de especialistas.
+ * @name GET/api/especialistas
+ * @function
+ * @memberof module:CitaRoutes
+ * @inner
+ * @param {string} path - Ruta de la API.
+ * @param {function} middleware - Controlador para manejar la solicitud.
+ */
+router.get("/api/especialistas", citaController.especialistas);
+
+/**
+ * Ruta para obtener la lista de centros.
+ * @name GET/api/centros
+ * @function
+ * @memberof module:CitaRoutes
+ * @inner
+ * @param {string} path - Ruta de la API.
+ * @param {function} middleware - Controlador para manejar la solicitud.
+ */
+router.get("/api/centros", citaController.centros);
+
 /**
  * Ruta para crear una nueva cita.
  * @name POST/crear-cita
